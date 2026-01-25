@@ -5,10 +5,13 @@ set +x
 printf "Stressing EROFS in QEMU..."
 
 mount -t tmpfs tmpfs /mnt
-mkdir -p /mnt/{test,golden,log}
+mkdir -p /mnt/{log,golden,testA,testB}
 mount /dev/sda /mnt/log
-mount -t erofs -oro /dev/sdb /mnt/test
-mount -t erofs -oro /dev/sdc /mnt/golden
+ls /dev/vd*
+ls /dev/sd*
+mount -t erofs -oro,inode_share,domain_id=test /dev/vda /mnt/golden
+mount -t erofs -oro,inode_share,domain_id=test /dev/vdb /mnt/testA
+mount -t erofs -oro,inode_share,domain_id=test /dev/vdc /mnt/testB
 echo 4 > /proc/sys/vm/drop_caches
 TIMEOUT=3600
 WORKERS=7
@@ -28,8 +31,18 @@ echo 100000000 > /proc/sys/fs/nr_open
 ulimit -n 100000000
 
 set -e
-timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump /mnt/test /mnt/golden || \
-	[ $? -ne 124 ] && { sync; exit; }
+
+run_test() {
+    test="$1"
+	golden="$2"
+    timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump $test $golden
+    exit_code=$?
+    [ $exit_code -ne 124 ] && { sync; exit; }
+}
+
+run_test /mnt/testA /mnt/golden &
+run_test /mnt/testB /mnt/golden &
+
 echo 0 > /mnt/log/exitstatus
 sync
 umount /mnt/log

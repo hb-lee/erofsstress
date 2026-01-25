@@ -8,12 +8,12 @@ on:
     inputs:
       kernel_repo:
         description: 'Kernel Git Repository'
-        default: 'git://git.kernel.org/pub/scm/linux/kernel/git/xiang/erofs.git'
+        default: 'https://github.com/hb-lee/linux.git'
         required: true
         type: string
       kernel_branch:
         description: 'Kernel Git Branch'
-        default: 'dev-test'
+        default: 'master'
         required: true
         type: string
       utils_repo:
@@ -24,6 +24,16 @@ on:
       utils_branch:
         description: 'erofs-utils Git Branch'
         default: 'experimental'
+        required: true
+        type: string
+      patch_repo:
+        description: 'erofs patch Git Repository'
+        default: 'https://github.com/hb-lee/erofs.git'
+        required: true
+        type: string
+      patch_branch:
+        description: 'erofs patch Git Branch'
+        default: 'main'
         required: true
         type: string
       timeout:
@@ -40,10 +50,12 @@ on:
 env:
   LZ4_VER: 1.10.0
   XZ_VER: 5.6.4
-  KERNEL_REPO: ${{ github.event_name == 'schedule' && 'git://git.kernel.org/pub/scm/linux/kernel/git/xiang/erofs.git' || github.event.inputs.kernel_repo }}
-  KERNEL_BRANCH: ${{ github.event_name == 'schedule' && 'dev-test' || github.event.inputs.kernel_branch }}
+  KERNEL_REPO: ${{ github.event_name == 'schedule' && 'https://github.com/hb-lee/linux.git' || github.event.inputs.kernel_repo }}
+  KERNEL_BRANCH: ${{ github.event_name == 'schedule' && 'master' || github.event.inputs.kernel_branch }}
   UTILS_REPO: ${{ github.event_name == 'schedule' && 'git://git.kernel.org/pub/scm/linux/kernel/git/xiang/erofs-utils.git' || github.event.inputs.utils_repo }}
   UTILS_BRANCH: ${{ github.event_name == 'schedule' && 'experimental' || github.event.inputs.utils_branch }}
+  PATCH_REPO: ${{ github.event_name == 'schedule' && 'https://github.com/hb-lee/erofs.git' || github.event.inputs.patch_repo }}
+  PATCH_BRANCH: ${{ github.event_name == 'schedule' && 'main' || github.event.inputs.patch_branch }}
   TIMEOUT: ${{ github.event_name == 'schedule' && 14400 || github.event.inputs.timeout }}
 
 defaults:
@@ -74,8 +86,16 @@ jobs:
         if: steps.cache-bzImage.outputs.cache-hit != 'true'
         run: |
           sudo rm -rf erofs; mkdir -p erofs
-          git clone $KERNEL_REPO -n --no-tags erofs
-          (cd erofs; git checkout ${{ steps.get_version_id.outputs.scm_version }}; rm -rf .git)
+          git config --global user.email "lihb2113@outlook.com"
+          git config --global user.name "Hongbo Li"
+          # git clone $KERNEL_REPO -b $KERNEL_BRANCH -n --no-tags erofs
+          git clone $KERNEL_REPO -b $KERNEL_BRANCH erofs
+          git clone $PATCH_REPO -b $PATCH_BRANCH erofs-patch
+          cd erofs
+          git am ../erofs-patch/vfs*
+          git am ../erofs-patch/erofs*
+          cd ../
+          # (cd erofs; git checkout ${{ steps.get_version_id.outputs.scm_version }}; rm -rf .git)
       - name: Build the kernel
         if: steps.cache-bzImage.outputs.cache-hit != 'true'
         run: |
@@ -147,7 +167,7 @@ jobs:
           sudo apt-get -qq update
           sudo apt-get install -y busybox
           chmod +x bin/mkfs.erofs bin/fsck.erofs bin/erofsfuse
-          ./genimage testdata golden.erofs '-zlz4hc,12 -Ededupe,fragments,ztailpacking -C65536'
+          ./genimage testdata golden.erofs '--xattr-inode-digest=trusted.erofs.fingerprint -zlz4hc,12 -Ededupe,fragments,ztailpacking -C65536'
 
   build-rootfs:
     runs-on: ubuntu-latest
@@ -181,6 +201,7 @@ jobs:
       matrix:
         alg: ["", "-zlz4", "-zlz4hc,12", "-zlzma,9", "-zdeflate", "-zzstd"]
         set: [0, 1]
+        share: ["", "--xattr-inode-digest=trusted.erofs.fingerprint"]
     steps:
       - uses: actions/checkout@v4
       - name: Fetch rootfs image
@@ -230,11 +251,12 @@ jobs:
           else
               MKFS_OPTIONS=""
           fi
-          bin/mkfs.erofs ${{ matrix.alg }} $MKFS_OPTIONS test.erofs mnt
+          bin/mkfs.erofs ${{ matrix.alg }} $MKFS_OPTIONS ${{ matrix.share }} testA.erofs mnt
+          bin/mkfs.erofs ${{ matrix.share }} testB.erofs mnt
           fusermount -u mnt; rm -rf mnt
           seed=$((RANDOM * RANDOM))
           echo "random seed: $seed"
-          ./stress-qemu-run bzImage rootfs.erofs test.erofs golden.erofs $TIMEOUT $seed
+          ./stress-qemu-run bzImage rootfs.erofs golden.erofs testA.erofs testB.erofs $TIMEOUT $seed
       - name: Upload images if the test fails
         uses: actions/upload-artifact@v4
         if: failure()
