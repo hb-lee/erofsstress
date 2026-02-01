@@ -9,8 +9,8 @@ mkdir -p /mnt/{log,golden,testA,testB}
 mount /dev/sda /mnt/log
 ls /dev/vd*
 ls /dev/sd*
-mount -t erofs -oro,inode_share,domain_id=test /dev/vda /mnt/golden
-mount -t erofs -oro,inode_share,domain_id=test /dev/vdb /mnt/testA
+mount -t erofs -oro /dev/vda /mnt/golden
+mount -t erofs -oro /dev/vdb /mnt/testA
 mount -t erofs -oro,inode_share,domain_id=test /dev/vdc /mnt/testB
 echo 4 > /proc/sys/vm/drop_caches
 TIMEOUT=3600
