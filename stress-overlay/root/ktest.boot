@@ -7,7 +7,7 @@ printf "Stressing EROFS in QEMU..."
 # test normal case
 mount -t tmpfs tmpfs /mnt
 mkdir -p /mnt/{log,golden,testA,testB}
-mount /dev/vda /mnt/log
+mount -t ext4 -o loop,noload,rw /dev/vda /mnt/log
 ls /dev/vd*
 ls /dev/sd*
 mount -t erofs -oro /dev/vdb /mnt/golden
