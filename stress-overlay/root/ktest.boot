@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-set +x
+set -x
 
 printf "Stressing EROFS in QEMU..."
 
