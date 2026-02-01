@@ -4,14 +4,15 @@ set +x
 
 printf "Stressing EROFS in QEMU..."
 
+# test normal case
 mount -t tmpfs tmpfs /mnt
 mkdir -p /mnt/{log,golden,testA,testB}
-mount /dev/sda /mnt/log
+mount /dev/vda /mnt/log
 ls /dev/vd*
 ls /dev/sd*
-mount -t erofs -oro,inode_share,domain_id=test /dev/vda /mnt/golden
-mount -t erofs -oro,inode_share,domain_id=test /dev/vdb /mnt/testA
-mount -t erofs -oro,inode_share,domain_id=test /dev/vdc /mnt/testB
+mount -t erofs -oro /dev/vdb /mnt/golden
+mount -t erofs -oro /dev/vdc /mnt/testA
+
 echo 4 > /proc/sys/vm/drop_caches
 TIMEOUT=3600
 WORKERS=7
@@ -40,6 +41,14 @@ run_test() {
     [ $exit_code -ne 124 ] && { sync; exit; }
 }
 
+run_test /mnt/testA /mnt/golden
+
+# test the inode sharing case
+umount /mnt/testA
+umount /mnt/golden
+mount -t erofs -oro,inode_share,domain_id=test /dev/vdb /mnt/golden
+mount -t erofs -oro,inode_share,domain_id=test /dev/vdc /mnt/testA
+mount -t erofs -oro,inode_share,domain_id=test /dev/vdd /mnt/testB
 run_test /mnt/testA /mnt/golden &
 run_test /mnt/testB /mnt/golden &
 
