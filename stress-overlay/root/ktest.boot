@@ -11,7 +11,7 @@ ls /dev/vd*
 #ls /dev/sd*
 mount -t erofs -oro /dev/vdb /mnt/golden
 mount -t erofs -oro /dev/vdc /mnt/testA
-mount -t erofs -oro,inode_share,domain_id=test /dev/vdd /mnt/testB
+
 echo 4 > /proc/sys/vm/drop_caches
 TIMEOUT=3600
 WORKERS=7
@@ -40,6 +40,13 @@ run_test() {
     [ $exit_code -ne 124 ] && { sync; exit; }
 }
 
+run_test /mnt/testA /mnt/golden
+umount /mnt/golden
+umount /mnt/testA
+
+mount -t erofs -oro,inode_share,domain_id=test /dev/vdb /mnt/golden
+mount -t erofs -oro,inode_share,domain_id=test /dev/vdc /mnt/testA
+mount -t erofs -oro,inode_share,domain_id=test /dev/vdd /mnt/testB
 run_test /mnt/testA /mnt/golden &
 run_test /mnt/testB /mnt/golden &
 
