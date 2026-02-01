@@ -6,12 +6,12 @@ printf "Stressing EROFS in QEMU..."
 
 mount -t tmpfs tmpfs /mnt
 mkdir -p /mnt/{log,golden,testA,testB}
-mount /dev/sda /mnt/log
+mount -t ext4 -o noload /dev/vda /mnt/log
 ls /dev/vd*
-ls /dev/sd*
-mount -t erofs -oro /dev/vda /mnt/golden
-mount -t erofs -oro /dev/vdb /mnt/testA
-mount -t erofs -oro,inode_share,domain_id=test /dev/vdc /mnt/testB
+#ls /dev/sd*
+mount -t erofs -oro /dev/vdb /mnt/golden
+mount -t erofs -oro /dev/vdc /mnt/testA
+mount -t erofs -oro,inode_share,domain_id=test /dev/vdd /mnt/testB
 echo 4 > /proc/sys/vm/drop_caches
 TIMEOUT=3600
 WORKERS=7
