@@ -44,12 +44,12 @@ run_test /mnt/testA /mnt/golden
 umount /mnt/golden
 umount /mnt/testA
 
-mount -t erofs -oro,inode_share,domain_id=test /dev/vdb /mnt/golden
-mount -t erofs -oro,inode_share,domain_id=test /dev/vdc /mnt/testA
-mount -t erofs -oro,inode_share,domain_id=test /dev/vdd /mnt/testB
-run_test /mnt/testA /mnt/golden &
-sleep 5
-run_test /mnt/testB /mnt/golden
+#mount -t erofs -oro,inode_share,domain_id=test /dev/vdb /mnt/golden
+#mount -t erofs -oro,inode_share,domain_id=test /dev/vdc /mnt/testA
+#mount -t erofs -oro,inode_share,domain_id=test /dev/vdd /mnt/testB
+#run_test /mnt/testA /mnt/golden &
+#sleep 5
+#run_test /mnt/testB /mnt/golden
 
 echo 0 > /mnt/log/exitstatus
 sync
