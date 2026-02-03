@@ -8,12 +8,12 @@ on:
     inputs:
       kernel_repo:
         description: 'Kernel Git Repository'
-        default: 'https://github.com/hb-lee/linux.git'
+        default: 'git://git.kernel.org/pub/scm/linux/kernel/git/xiang/erofs.git'
         required: true
         type: string
       kernel_branch:
         description: 'Kernel Git Branch'
-        default: 'master'
+        default: 'dev-test'
         required: true
         type: string
       utils_repo:
@@ -50,8 +50,8 @@ on:
 env:
   LZ4_VER: 1.10.0
   XZ_VER: 5.6.4
-  KERNEL_REPO: ${{ github.event_name == 'schedule' && 'https://github.com/hb-lee/linux.git' || github.event.inputs.kernel_repo }}
-  KERNEL_BRANCH: ${{ github.event_name == 'schedule' && 'master' || github.event.inputs.kernel_branch }}
+  KERNEL_REPO: ${{ github.event_name == 'schedule' && 'git://git.kernel.org/pub/scm/linux/kernel/git/xiang/erofs.git' || github.event.inputs.kernel_repo }}
+  KERNEL_BRANCH: ${{ github.event_name == 'schedule' && 'dev-test' || github.event.inputs.kernel_branch }}
   UTILS_REPO: ${{ github.event_name == 'schedule' && 'git://git.kernel.org/pub/scm/linux/kernel/git/xiang/erofs-utils.git' || github.event.inputs.utils_repo }}
   UTILS_BRANCH: ${{ github.event_name == 'schedule' && 'experimental' || github.event.inputs.utils_branch }}
   PATCH_REPO: ${{ github.event_name == 'schedule' && 'https://github.com/hb-lee/erofs.git' || github.event.inputs.patch_repo }}
@@ -86,16 +86,16 @@ jobs:
         if: steps.cache-bzImage.outputs.cache-hit != 'true'
         run: |
           sudo rm -rf erofs; mkdir -p erofs
-          git config --global user.email "lihb2113@outlook.com"
-          git config --global user.name "Hongbo Li"
-          # git clone $KERNEL_REPO -b $KERNEL_BRANCH -n --no-tags erofs
-          git clone $KERNEL_REPO -b $KERNEL_BRANCH erofs
-          git clone $PATCH_REPO -b $PATCH_BRANCH erofs-patch
-          cd erofs
-          git am ../erofs-patch/vfs*
-          git am ../erofs-patch/erofs*
-          cd ../
-          # (cd erofs; git checkout ${{ steps.get_version_id.outputs.scm_version }}; rm -rf .git)
+          #git config --global user.email "lihb2113@outlook.com"
+          #git config --global user.name "Hongbo Li"
+          git clone $KERNEL_REPO -n --no-tags erofs
+          #git clone $KERNEL_REPO -b $KERNEL_BRANCH erofs
+          #git clone $PATCH_REPO -b $PATCH_BRANCH erofs-patch
+          #cd erofs
+          #git am ../erofs-patch/vfs*
+          #git am ../erofs-patch/erofs*
+          #cd ../
+          (cd erofs; git checkout ${{ steps.get_version_id.outputs.scm_version }}; rm -rf .git)
       - name: Build the kernel
         if: steps.cache-bzImage.outputs.cache-hit != 'true'
         run: |
