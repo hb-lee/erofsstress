@@ -261,7 +261,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: qemu-image-dump
+          name: qemu-image-dump-${{ matrix.alg }}-${{ matrix.set }}-${{ matrix.share }}
           path: |
             *.erofs
             baddump*
