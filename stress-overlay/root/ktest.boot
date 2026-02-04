@@ -37,10 +37,10 @@ run_test() {
 	golden="$2"
     timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump $test $golden || [ $exit_code -ne 124 ] && { sync; exit; }
 }
-
-run_test /mnt/testA /mnt/golden
-umount /mnt/golden
-umount /mnt/testA
+timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump $test $golden || [ $exit_code -ne 124 ] && { sync; exit; }
+#run_test /mnt/testA /mnt/golden
+#umount /mnt/golden
+#umount /mnt/testA
 
 #mount -t erofs -oro,inode_share,domain_id=test /dev/vdb /mnt/golden
 #mount -t erofs -oro,inode_share,domain_id=test /dev/vdc /mnt/testA
