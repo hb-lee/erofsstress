@@ -20,8 +20,10 @@ add_data_disk() {
   done
 }
 
-DISKS=("${@:6}")
-DATA_DISKS=$(add_data_disk "${DISKS[@]}")
+ARGS="$*"
+shift 6
+DATA_DISKS=$(add_data_disk "${@}")
+set -- $ARGS
 
 qemu-system-x86_64 -nographic -serial mon:stdio -m $mem -smp $cpus $kvm -kernel "$1" \
 	-drive file="$2",index=0,readonly=on,media=cdrom \
