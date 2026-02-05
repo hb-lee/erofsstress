@@ -201,6 +201,7 @@ jobs:
       matrix:
         alg: ["", "-zlz4", "-zlz4hc,12", "-zlzma,9", "-zdeflate", "-zzstd"]
         set: [0, 1]
+        share: ["", "--xattr-inode-digest=trusted.erofs.fingerprint"]
     steps:
       - uses: actions/checkout@v4
       - name: Fetch rootfs image
@@ -250,8 +251,8 @@ jobs:
           else
               MKFS_OPTIONS=""
           fi
-          bin/mkfs.erofs ${{ matrix.alg }} $MKFS_OPTIONS --xattr-inode-digest=trusted.erofs.fingerprint testA.erofs mnt
-          bin/mkfs.erofs --xattr-inode-digest=trusted.erofs.fingerprint testB.erofs mnt
+          bin/mkfs.erofs ${{ matrix.alg }} $MKFS_OPTIONS ${{ matrix.share }} testA.erofs mnt
+          bin/mkfs.erofs ${{matrix.share}} testB.erofs mnt
           fusermount -u mnt; rm -rf mnt
           seed=$((RANDOM * RANDOM))
           echo "random seed: $seed"
@@ -260,7 +261,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: qemu-image-dump-${{ matrix.alg }}-${{ matrix.set }}
+          name: qemu-image-dump-${{ matrix.alg }}-${{ matrix.set }}-${{ matrix.share }}
           path: |
             *.erofs
             baddump*
