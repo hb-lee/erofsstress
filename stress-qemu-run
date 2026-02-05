@@ -15,7 +15,7 @@ sync
 add_data_disk() {
   local baseidx=2
   for disk in "$@"; do
-    echo "-driver file=$disk,if=virtio,index=$baseidx"
+    echo "-driver file=$disk,if=virtio,index=$baseidx,media=disk"
 	baseidx=$((baseidx + 1))
   done
 }
