@@ -35,10 +35,10 @@ set -e
 run_test() {
     test="$1"
 	golden="$2"
-    timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump $test $golden || [ $exit_code -ne 124 ] && { sync; exit; }
+    timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump $test $golden || [ $? -ne 124 ] && { sync; exit; }
 }
-timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump $test $golden || [ $exit_code -ne 124 ] && { sync; exit; }
-#run_test /mnt/testA /mnt/golden
+#timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump $test $golden || [ $? -ne 124 ] && { sync; exit; }
+run_test /mnt/testA /mnt/golden
 umount /mnt/golden
 umount /mnt/testA
 
