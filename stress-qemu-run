@@ -20,12 +20,7 @@ add_data_disk() {
   done
 }
 
-if [ $# -eq 6 ]; then
-  APPEND_ARGS="net.ifnames=0 root=/dev/sr0 console=ttyS0 qemuktest.timeout=$3 qemuktest.seed=$4 qemuktest.share=0"
-else
-  APPEND_ARGS="net.ifnames=0 root=/dev/sr0 console=ttyS0 qemuktest.timeout=$3 qemuktest.seed=$4 qemuktest.share=1"
-fi
-DISKS=("${@:4}")
+DISKS=("${@:6}")
 DATA_DISKS=$(add_data_disk "${DISKS[@]}")
 
 qemu-system-x86_64 -nographic -serial mon:stdio -m $mem -smp $cpus $kvm -kernel "$1" \
@@ -33,7 +28,7 @@ qemu-system-x86_64 -nographic -serial mon:stdio -m $mem -smp $cpus $kvm -kernel 
 	-drive file=logdev.ext4,if=virtio,index=1,media=disk \
 	$DATA_DISKS \
 	-net nic,model=e1000 -net user \
-	-append "$APPEND_ARGS"
+	-append "net.ifnames=0 root=/dev/sr0 console=ttyS0 qemuktest.timeout=$3 qemuktest.seed=$4 qemuktest.share=$5"
 
 (mkdir -p mnt && sudo mount -o loop logdev.ext4 mnt && find mnt -maxdepth 1 -type f -exec cp '{}' . \; && sudo umount mnt)
 rm -f logdev.ext4

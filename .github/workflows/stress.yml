@@ -257,11 +257,11 @@ jobs:
             bin/mkfs.erofs ${{ matrix.alg }} $MKFS_OPTIONS --xattr-inode-digest=sha256.erofs.fingerprint testA.erofs mnt
             bin/mkfs.erofs --xattr-inode-digest=sha256.erofs.fingerprint testB.erofs mnt
             fusermount -u mnt; rm -rf mnt
-            ./stress-qemu-run bzImage rootfs.erofs $TIMEOUT $seed golden.erofs testA.erofs testB.erofs
+            ./stress-qemu-run bzImage rootfs.erofs $TIMEOUT $seed ${{ matrix.share }} golden.erofs testA.erofs testB.erofs
           else
-            bin/mkfs.erofs ${{ matrix.alg }} $MKFS_OPTIONS ${{ matrix.share }} testA.erofs mnt
+            bin/mkfs.erofs ${{ matrix.alg }} $MKFS_OPTIONS testA.erofs mnt
             fusermount -u mnt; rm -rf mnt
-            ./stress-qemu-run bzImage rootfs.erofs $TIMEOUT $seed golden.erofs testA.erofs
+            ./stress-qemu-run bzImage rootfs.erofs $TIMEOUT $seed ${{ matrix.share }} golden.erofs testA.erofs
           fi
       - name: Upload images if the test fails
         uses: actions/upload-artifact@v4
