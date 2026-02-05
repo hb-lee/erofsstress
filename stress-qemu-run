@@ -16,7 +16,7 @@ add_data_disk() {
   local baseidx=2
   for disk in "$@"; do
     echo "-driver file=$disk,if=virtio,index=$baseidx"
-	((baseidx++))
+	baseidx=$((baseidx + 1))
   done
 }
 
