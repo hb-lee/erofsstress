@@ -255,7 +255,7 @@ jobs:
           echo "random seed: $seed"
           if [ "x${{ matrix.share }}" = "x1" ]; then
             bin/mkfs.erofs ${{ matrix.alg }} $MKFS_OPTIONS --xattr-inode-digest=sha256.erofs.fingerprint testA.erofs mnt
-            bin/mkfs.erofs ${{ matrix.alg }} --xattr-inode-digest=sha256.erofs.fingerprint testB.erofs mnt
+            bin/mkfs.erofs --xattr-inode-digest=sha256.erofs.fingerprint testB.erofs mnt
             fusermount -u mnt; rm -rf mnt
             ./stress-qemu-run bzImage rootfs.erofs $TIMEOUT $seed ${{ matrix.share }} golden.erofs testA.erofs testB.erofs
           else
