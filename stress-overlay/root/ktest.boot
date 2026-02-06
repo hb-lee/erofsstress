@@ -37,11 +37,13 @@ set -e
 if [ $SHARE -eq 0 ]; then
   mount -t erofs -oro /dev/vdb /mnt/golden
   mount -t erofs -oro /dev/vdc /mnt/testA
+  mount | grep erofs
   timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump /mnt/testA /mnt/golden || [ $? -ne 124 ] && { sync; exit; }
 else
   mount -t erofs -oro,inode_share,domain_id=test /dev/vdb /mnt/golden
   mount -t erofs -oro,inode_share,domain_id=test /dev/vdc /mnt/testA
   mount -t erofs -oro,inode_share,domain_id=test /dev/vdd /mnt/testB
+  mount | grep erofs
   timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump /mnt/testA /mnt/golden || [ $? -ne 124 ] && { sync; exit; } &
   pidA=$!
   sleep 1
