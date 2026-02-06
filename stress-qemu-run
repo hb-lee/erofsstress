@@ -21,7 +21,7 @@ add_data_disk() {
 }
 
 ARGS="$*"
-shift 6
+shift 5
 DATA_DISKS=$(add_data_disk "${@}")
 set -- $ARGS
 
