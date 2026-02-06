@@ -34,23 +34,20 @@ ulimit -n 100000000
 
 set -e
 
-if [ $SHARE -eq 1 ]; then
-  echo "Ok"
-  mount -t erofs -oro,inode_share,domain_id=test /dev/vdb /mnt/golden
-  mount -t erofs -oro,inode_share,domain_id=test /dev/vdc /mnt/testA
-  mount -t erofs -oro,inode_share,domain_id=test /dev/vdd /mnt/testB
-else
+if [ $SHARE -eq 0 ]; then
   mount -t erofs -oro /dev/vdb /mnt/golden
   mount -t erofs -oro /dev/vdc /mnt/testA
   timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump /mnt/testA /mnt/golden || [ $? -ne 124 ] && { sync; exit; }
+else
+  mount -t erofs -oro,inode_share,domain_id=test /dev/vdb /mnt/golden
+  mount -t erofs -oro,inode_share,domain_id=test /dev/vdc /mnt/testA
+  mount -t erofs -oro,inode_share,domain_id=test /dev/vdd /mnt/testB
+  timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump /mnt/testA /mnt/golden || [ $? -ne 124 ] && { sync; exit; } &
+  pidA=$!
+  sleep 1
+  timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump /mnt/testB /mnt/golden || [ $? -ne 124 ] && { sync; exit; }
+  wait $pidA
 fi
-
-#mount -t erofs -oro,inode_share,domain_id=test /dev/vdb /mnt/golden
-#mount -t erofs -oro,inode_share,domain_id=test /dev/vdc /mnt/testA
-#mount -t erofs -oro,inode_share,domain_id=test /dev/vdd /mnt/testB
-#run_test /mnt/testA /mnt/golden &
-#sleep 5
-#run_test /mnt/testB /mnt/golden
 
 echo 0 > /mnt/log/exitstatus
 sync
