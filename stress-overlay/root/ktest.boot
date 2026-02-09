@@ -50,9 +50,10 @@ else
   exitA=$?
   wait $pidB
   exitB=$?
+  echo "EXIT code:$exitA, $exitB"
   if [ $exitA -ne 0 -a $exitA -ne 124 ] || [ $exitB -ne 0 -a $exitB -ne 124 ]; then
     sync
-	exit;
+	exit
   fi
 fi
 
