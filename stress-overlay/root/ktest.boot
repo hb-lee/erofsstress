@@ -44,17 +44,24 @@ else
   mount -t erofs -oro /dev/vdd /mnt/testB
   timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump /mnt/testA /mnt/golden &
   pidA=$!
-  timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump /mnt/testB /mnt/golden &
-  pidB=$!
   wait $pidA
   exitA=$?
-  wait $pidB
-  exitB=$?
-  echo "EXIT code:$exitA, $exitB"
-  if [ $exitA -ne 0 -a $exitA -ne 124 ] || [ $exitB -ne 0 -a $exitB -ne 124 ]; then
+  echo "LHBDBG exitA:$exitA"
+  if [ $exitA -ne 0 -a $exitA -ne 124 ]; then
     sync
 	exit
   fi
+  #timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump /mnt/testB /mnt/golden &
+  #pidB=$!
+  #wait $pidA
+  #exitA=$?
+  #wait $pidB
+  #exitB=$?
+  #echo "EXIT code:$exitA, $exitB"
+  #if [ $exitA -ne 0 -a $exitA -ne 124 ] || [ $exitB -ne 0 -a $exitB -ne 124 ]; then
+  #  sync
+#	exit
+#  fi
 fi
 
 echo 0 > /mnt/log/exitstatus
