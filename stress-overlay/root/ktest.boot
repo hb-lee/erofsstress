@@ -12,7 +12,7 @@ ls /dev/vd*
 
 echo 4 > /proc/sys/vm/drop_caches
 TIMEOUT=3600
-WORKERS=7
+WORKERS=4
 SEED=123
 SHARE=0
 for x in `cat /proc/cmdline`; do
@@ -42,10 +42,11 @@ else
   mount -t erofs -oro /dev/vdb /mnt/golden
   mount -t erofs -oro /dev/vdc /mnt/testA
   mount -t erofs -oro /dev/vdd /mnt/testB
-  timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump /mnt/testA /mnt/golden || [ $? -ne 124 ] && { sync; exit; }
-  echo "Exit Code. $?"
-  #timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump /mnt/testA /mnt/golden &
-  #pidA=$!
+  #timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump /mnt/testA /mnt/golden || [ $? -ne 124 ] && { sync; exit; }
+  #echo "Exit Code. $?"
+  timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump /mnt/testA /mnt/golden &
+  pidA=$!
+  sleep 5
   #wait $pidA
   #exitA=$?
   #echo "LHBDBG exitA:$exitA"
@@ -53,17 +54,19 @@ else
   #  sync
 #	exit
 #  fi
-  #timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump /mnt/testB /mnt/golden &
-  #pidB=$!
-  #wait $pidA
-  #exitA=$?
-  #wait $pidB
-  #exitB=$?
-  #echo "EXIT code:$exitA, $exitB"
-  #if [ $exitA -ne 0 -a $exitA -ne 124 ] || [ $exitB -ne 0 -a $exitB -ne 124 ]; then
-  #  sync
-#	exit
-#  fi
+  timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump /mnt/testB /mnt/golden &
+  pidB=$!
+  wait $pidA
+  exitA=$?
+  wait $pidB
+  exitB=$?
+  echo "EXIT code:$exitA, $exitB"
+  if [ $exitA -ne 0 -a $exitA -ne 124 ] || [ $exitB -ne 0 -a $exitB -ne 124 ]; then
+    sync
+	echo "ERROR"
+	exit
+  fi
+  echo "OK"
 fi
 
 echo 0 > /mnt/log/exitstatus
