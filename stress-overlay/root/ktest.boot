@@ -42,31 +42,25 @@ else
   mount -t erofs -oro /dev/vdb /mnt/golden
   mount -t erofs -oro /dev/vdc /mnt/testA
   mount -t erofs -oro /dev/vdd /mnt/testB
-  #timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump /mnt/testA /mnt/golden || [ $? -ne 124 ] && { sync; exit; }
-  #echo "Exit Code. $?"
-  timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump /mnt/testA /mnt/golden &
+  exitA=$(mktemp)
+  timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump /mnt/testA /mnt/golden || echo $? > $exitA &
   pidA=$!
-  sleep 5
-  #wait $pidA
-  #exitA=$?
-  #echo "LHBDBG exitA:$exitA"
-  #if [ $exitA -ne 0 -a $exitA -ne 124 ]; then
-  #  sync
-#	exit
-#  fi
-  timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump /mnt/testB /mnt/golden &
+  exitB=$(mktemp)
+  timeout -k30 $TIMEOUT stdbuf -o0 -e0 /root/stress -p$WORKERS -s$SEED -l0 -d/mnt/log/baddump /mnt/testB /mnt/golden || echo $? > $exitB &
   pidB=$!
-  wait $pidA
-  exitA=$?
-  wait $pidB
-  exitB=$?
+  wait $pidA || true
+  wait $pidB || true
+  exit_codeA=$(cat $exitA)
+  exit_codeA=${exit_codeA:-0}
+  exit_codeB=$(cat $exitB)
+  exit_codeB=${exit_codeB:-0}
+  rm -f $exitA
+  rm -f $exitB
   echo "EXIT code:$exitA, $exitB"
-  if [ $exitA -ne 0 -a $exitA -ne 124 ] || [ $exitB -ne 0 -a $exitB -ne 124 ]; then
+  if [ "$exit_codeA" -ne 0 -a "$exit_codeA" -ne 124 ] || [ "$exit_codeB" -ne 0 -a "$exit_codeB" -ne 124 ]; then
     sync
-	echo "ERROR"
 	exit
   fi
-  echo "OK"
 fi
 
 echo 0 > /mnt/log/exitstatus
