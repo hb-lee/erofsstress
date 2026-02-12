@@ -92,7 +92,7 @@ jobs:
           git clone $KERNEL_REPO -b $KERNEL_BRANCH erofs
           git clone $PATCH_REPO -b $PATCH_BRANCH erofs-patch
           cd erofs
-          git am ../erofs-patch/0001*
+          git am ../erofs-patch/0001-erofs-only-allow-*
           #git am ../erofs-patch/vfs*
           #git am ../erofs-patch/erofs*
           cd ../
